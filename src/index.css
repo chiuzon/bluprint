@@ -5,9 +5,42 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  height: 100vh;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.container {
+  display: grid;
+  grid-template-columns: 0.2fr 0.6fr 3.2fr 0.8fr;
+  grid-template-rows: 3.9fr 0.6fr;
+  gap: 0px 0px;
+  grid-template-areas:
+    "BAR_1 BAR_2 GRAPH BAR_3"
+    "BAR_1 BAR_2 BOTTOM_1 BAR_3";
+  height: 100vh;
+}
+
+.BAR_1 {
+  grid-area: BAR_1;
+
+}
+
+.BAR_2 {
+  grid-area: BAR_2;
+}
+
+.BOTTOM_1 {
+  grid-area: BOTTOM_1;
+}
+
+.BAR_3 {
+  grid-area: BAR_3;
+}
+
+.GRAPH {
+  grid-area: GRAPH;
+}
+
+.button-1 {
+  width: 4rem;
+  height: 10rem;
 }
