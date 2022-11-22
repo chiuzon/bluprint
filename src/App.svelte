@@ -1,108 +1,156 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
+  import GraphComponent from "./lib/components/GraphComponent.svelte";
+  import Layout from "./lib/components/Layout.svelte";
+  import MenuBar from "./lib/components/MenuBar.svelte";
+  import MenuContent from "./lib/components/MenuContent.svelte";
+  import BottomContent from "./lib/components/BottomContent.svelte";
+  import PropPanel from "./lib/components/PropPanel.svelte";
+  import TopBar from "./lib/components/TopBar.svelte";
 
-  import Properties from "./lib/Properties.svelte";
-  import LocalVariables from "./lib/LocalVariables.svelte";
-  import Functions from "./lib/Functions.svelte";
-  import Variables from "./lib/Variables.svelte";
-  import Explorer from "./lib/Explorer.svelte";
+  // let canvasRef = undefined;
 
-  import registerDefaultNodes from "./lib/nodes/defaultNodes";
+  // let graph: LGraph | undefined = undefined;
+  // let canvasGraph: LGraphCanvas | undefined = undefined;
 
-  import "litegraph.js/css/litegraph.css";
+  // registerDefaultNodes();
 
-  import { ContractFunction, selectedElement } from "./lib/stores";
+  // function clearGraph() {
+  //   if (graph) {
+  //     graph.clear();
+  //   }
 
-  import { LGraph, LGraphCanvas, LiteGraph } from "litegraph.js";
+  //   if (canvasGraph) {
+  //     canvasGraph.clear();
+  //   }
+  // }
 
-  let canvasRef = undefined;
+  // function onGraphLoad(selectedElement) {
+  //   if (!selectedElement) {
+  //     return;
+  //   }
+  //   if (selectedElement.constructor.name !== "ContractFunction") {
+  //     clearGraph();
+  //     return;
+  //   }
 
-  let graph: LGraph | undefined = undefined;
-  let canvasGraph: LGraphCanvas | undefined = undefined;
+  //   clearGraph();
 
-  registerDefaultNodes();
+  //   const contractFunction = selectedElement as ContractFunction;
 
-  function clearGraph() {
-    if (graph) {
-      graph.clear();
-    }
+  //   if (contractFunction) {
+  //     for (const defaultNode of contractFunction.buildDefaultNode()) {
+  //       graph.add(defaultNode);
+  //     }
+  //   }
 
-    if (canvasGraph) {
-      canvasGraph.clear();
-    }
-  }
+  //   graph.start();
 
-  function onGraphLoad(selectedElement) {
-    if (!selectedElement) {
-      return;
-    }
-    if (selectedElement.constructor.name !== "ContractFunction") {
-      clearGraph();
-      return;
-    }
+  //   console.log(graph.serialize());
+  // }
 
-    clearGraph();
+  // onMount(() => {
+  //   if (!canvasRef) return;
 
-    const contractFunction = selectedElement as ContractFunction;
+  //   graph = new LGraph();
 
-    if (contractFunction) {
-      for (const defaultNode of contractFunction.buildDefaultNode()) {
-        graph.add(defaultNode);
-      }
-    }
+  //   graph.onNodeAdded = () => {
+  //     console.log("node added");
+  //   };
 
-    graph.start();
+  //   canvasGraph = new LGraphCanvas(canvasRef, graph);
+  // });
 
-    console.log(graph.serialize());
-  }
+  // onDestroy(() => {
+  //   clearGraph();
+  // });
 
-  onMount(() => {
-    if (!canvasRef) return;
+  // $: onGraphLoad($selectedElement);
 
-    graph = new LGraph();
+  const GRAPH_ENUM = {
+    NODE: {
+      HELLO: 0,
+      WORLD: 1,
+    },
+    EDGE: {
+      HELLO_TO_WORLD: 0,
+    },
+  };
 
-    graph.onNodeAdded = () => {
-      console.log("node added");
-    };
+  const GRAPH_SCHEMA = {
+    nodes: {
+      [GRAPH_ENUM.NODE.HELLO]: {
+        name: "Hello",
+        outPorts: [
+          {
+            name: "output",
+            type: GRAPH_ENUM.EDGE.HELLO_TO_WORLD,
+          },
+          {
+            name: "output",
+            type: GRAPH_ENUM.EDGE.HELLO_TO_WORLD,
+          },
+        ],
+      },
+      [GRAPH_ENUM.NODE.WORLD]: {
+        name: "World",
+        inPorts: [
+          {
+            name: "input",
+            type: GRAPH_ENUM.EDGE.HELLO_TO_WORLD,
+          },
+        ],
+      },
+    },
+    edges: {
+      [GRAPH_ENUM.EDGE.HELLO_TO_WORLD]: {
+        from: GRAPH_ENUM.NODE.HELLO,
+        to: GRAPH_ENUM.NODE.WORLD,
+      },
+    },
+  };
 
-    canvasGraph = new LGraphCanvas(canvasRef, graph);
-  });
-
-  onDestroy(() => {
-    clearGraph();
-  });
-
-  $: onGraphLoad($selectedElement);
+  var GRAPH_DATA = {
+    nodes: {
+      1234: {
+        id: 1234,
+        nodeType: GRAPH_ENUM.NODE.HELLO,
+        name: "Hello",
+        posX: 200,
+        posY: 200,
+      },
+      1235: {
+        id: 1235,
+        nodeType: GRAPH_ENUM.NODE.WORLD,
+        name: "World",
+        posX: 500,
+        posY: 200,
+      },
+      1215: {
+        id: 1215,
+        nodeType: GRAPH_ENUM.NODE.WORLD,
+        name: "World",
+        posX: 500,
+        posY: 200,
+      },
+    },
+    edges: {
+      "1234,0-1235,0": {
+        edgeType: GRAPH_ENUM.EDGE.HELLO_TO_WORLD,
+        from: 1234,
+        to: 1235,
+        inPort: 0,
+        outPort: 0,
+      },
+    },
+  };
 </script>
 
-<canvas
-  id="mycanvas"
-  bind:this={canvasRef}
-  width="1920"
-  height="1080"
-  class="w-full"
-/>
-<div class="flex flex-col h-screen fixed inset-0 pointer-events-none">
-  <div class=" p-1 flex pointer-events-auto">
-    <button class="bg-[#1c1c1e] px-2 py-1 rounded-sm text-xs font-semibold"
-      >Deploy</button
-    >
-  </div>
-  <div class="flex justify-between h-full ">
-    <div
-      class="w-1/6 h-full justify-between flex flex-col gap-2 p-1 pointer-events-auto"
-    >
-      <Variables />
-      <Functions />
-    </div>
-    <div class="w-2/3 flex flex-col h-full">
-      <div class=" w-full h-full  pointer-events-none" />
+<Layout>
+  <TopBar slot="top-bar" />
+  <MenuBar slot="menu-panel" />
+  <MenuContent slot="left-panel" />
+  <BottomContent slot="bottom-panel" />
+  <PropPanel slot="right-panel" />
+</Layout>
 
-      <Explorer />
-    </div>
-    <div class="w-1/6  gap-2 p-1  flex flex-col pointer-events-auto">
-      <Properties />
-      <LocalVariables />
-    </div>
-  </div>
-</div>
+<GraphComponent schema={GRAPH_SCHEMA} initialData={GRAPH_DATA} />

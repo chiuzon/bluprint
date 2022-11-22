@@ -2,283 +2,279 @@ import { writable } from "svelte/store"
 import InputComponent from "../components/InputComponent.svelte"
 import { v4 as uuidv4 } from "uuid";
 import { LiteGraph } from "litegraph.js";
-import FunctionArguments from "../components/FunctionArguments.svelte";
-
-export interface VariableProps {
-    name: string,
-    uuid: string,
-    type: "string" | "bigint" | "int" | "map" | "array"
-}
-
-export enum ContractFunctionType {
-    CONSTRUCTOR,
-    FUNCTION
-}
+// import FunctionArguments from "../components/FunctionArguments.svelte";
+import type { ContractFileSystem, UIElementsMetadata } from "./types";
+import { makeContract, makeMethod, makeVariable } from "./defaults";
+
+// export interface VariableProps {
+//     name: string,
+//     uuid: string,
+//     type: "string" | "bigint" | "int" | "map" | "array"
+// }
+
+// export enum ContractFunctionType {
+//     CONSTRUCTOR,
+//     FUNCTION
+// }
+
+// export interface FunctionProps {
+//     name: string,
+//     uuid: string,
+//     variables: Variable[],
+//     type: ContractFunctionType,
+//     inputs: {
+//         name: string,
+//         type: string
+//     }[],
+//     outputs: {
+//         name: string,
+//         type: string
+//     }[]
+// }
+
+// export interface ContractProps {
+//     name: string,
+//     variables: Variable[],
+//     functions: ContractFunction[]
+// }
 
-export interface FunctionProps {
-    name: string,
-    uuid: string,
-    variables: Variable[],
-    type: ContractFunctionType,
-    inputs: {
-        name: string,
-        type: string
-    }[],
-    outputs: {
-        name: string,
-        type: string
-    }[]
-}
+// export class ContractFunction {
 
-export interface ContractProps {
-    name: string,
-    variables: Variable[],
-    functions: ContractFunction[]
-}
+//     props: FunctionProps = {
+//         name: "",
+//         uuid: uuidv4(),
+//         variables: [],
+//         type: ContractFunctionType.FUNCTION,
+//         inputs: [],
+//         outputs: []
+//     }
 
-export class ContractFunction {
+//     constructor(name: string) {
+//         this.props.name = name
+//     }
 
-    props: FunctionProps = {
-        name: "",
-        uuid: uuidv4(),
-        variables: [],
-        type: ContractFunctionType.FUNCTION,
-        inputs: [],
-        outputs: []
-    }
+//     addVariable() {
+//         const localVariable = new Variable(`LocalVariable_${this.props.variables.length + 1}`)
 
-    constructor(name: string) {
-        this.props.name = name
-    }
+//         this.props.variables = [...this.props.variables, localVariable]
 
-    addVariable() {
-        const localVariable = new Variable(`LocalVariable_${this.props.variables.length + 1}`)
+//         return this
+//     }
 
-        this.props.variables = [...this.props.variables, localVariable]
+//     addInput(name: string, type: string) {
+//         this.props.inputs = [...this.props.inputs, { name, type }]
 
-        return this
-    }
+//         return this;
+//     }
 
-    addInput(name: string, type: string) {
-        this.props.inputs = [...this.props.inputs, { name, type }]
+//     removeInput(index: number) {
+//         this.props.inputs = this.props.inputs.filter((_, _index) => _index !== index)
 
-        return this;
-    }
 
-    removeInput(index: number) {
-        this.props.inputs = this.props.inputs.filter((_, _index) => _index !== index)
+//         return this;
+//     }
 
+//     editInput(index: number, props: { name: string, type: string }) {
+//         this.props.inputs[index] = {
+//             ...this.props[index],
+//             ...props
+//         }
 
-        return this;
-    }
+//         return this
+//     }
 
-    editInput(index: number, props: { name: string, type: string }) {
-        this.props.inputs[index] = {
-            ...this.props[index],
-            ...props
-        }
+//     buildDefaultNode() {
 
-        return this
-    }
+//         const node_const = LiteGraph.createNode("func/constructor");
 
-    buildDefaultNode() {
+//         node_const.title = this.props.name
 
-        const node_const = LiteGraph.createNode("func/constructor");
+//         for (const input of this.props.inputs) {
+//             node_const.addOutput(input.name, input.type)
+//         }
 
-        node_const.title = this.props.name
+//         node_const.pos = [500, 500];
 
-        for (const input of this.props.inputs) {
-            node_const.addOutput(input.name, input.type)
-        }
+//         return [node_const]
+//     }
+// }
 
-        node_const.pos = [500, 500];
+// export class Variable {
 
-        return [node_const]
-    }
-}
+//     props: VariableProps = {
+//         name: "",
+//         uuid: uuidv4(),
+//         type: "int"
+//     }
 
-export class Variable {
+//     constructor(name: string) {
+//         this.props.name = name
+//     }
+// }
+// // Use class for file system
+// export class Contract {
 
-    props: VariableProps = {
-        name: "",
-        uuid: uuidv4(),
-        type: "int"
-    }
+//     props: ContractProps = {
 
-    constructor(name: string) {
-        this.props.name = name
-    }
-}
-// Use class for file system
-export class Contract {
+//         name: "",
+//         variables: [],
+//         functions: []
+//     }
 
-    props: ContractProps = {
+//     constructor(name: string) {
+//         this.props.name = name;
 
-        name: "",
-        variables: [],
-        functions: []
-    }
+//         this.addConstructor()
+//     }
 
-    constructor(name: string) {
-        this.props.name = name;
+//     addVariable() {
+//         const localVariable = new Variable(`Variable_${this.props.variables.length + 1}`)
 
-        this.addConstructor()
-    }
+//         this.props.variables = [...this.props.variables, localVariable]
 
-    addVariable() {
-        const localVariable = new Variable(`Variable_${this.props.variables.length + 1}`)
+//         return this
+//     }
 
-        this.props.variables = [...this.props.variables, localVariable]
+//     addConstructor() {
+//         const localFunction = new ContractFunction(`Constructor`)
 
-        return this
-    }
+//         localFunction.props.type = ContractFunctionType.CONSTRUCTOR
 
-    addConstructor() {
-        const localFunction = new ContractFunction(`Constructor`)
+//         this.props.functions = [...this.props.functions, localFunction]
 
-        localFunction.props.type = ContractFunctionType.CONSTRUCTOR
+//         return this
+//     }
 
-        this.props.functions = [...this.props.functions, localFunction]
+//     addFunction() {
+//         const localFunction = new ContractFunction(`Function_${this.props.variables.length + 1}`)
 
-        return this
-    }
+//         this.props.functions = [...this.props.functions, localFunction]
 
-    addFunction() {
-        const localFunction = new ContractFunction(`Function_${this.props.variables.length + 1}`)
+//         return this
+//     }
 
-        this.props.functions = [...this.props.functions, localFunction]
+//     editVariableProp(variable: Variable, key: string, value: any) {
+//         const searchVariableIndex = this.props.variables.findIndex((val) => val.props.uuid === variable.props.uuid)
 
-        return this
-    }
+//         if (searchVariableIndex !== -1) {
+//             this.props.variables[searchVariableIndex].props[key] = value;
+//         }
 
-    editVariableProp(variable: Variable, key: string, value: any) {
-        const searchVariableIndex = this.props.variables.findIndex((val) => val.props.uuid === variable.props.uuid)
+//         return this
+//     }
 
-        if (searchVariableIndex !== -1) {
-            this.props.variables[searchVariableIndex].props[key] = value;
-        }
+//     editFunctionProp(contractFunction: ContractFunction, key: string, value: any) {
+//         const searchFunctionIndex = this.props.functions.findIndex((val) => val.props.uuid === contractFunction.props.uuid)
 
-        return this
-    }
+//         if (searchFunctionIndex !== -1) {
+//             this.props.functions[searchFunctionIndex].props[key] = value;
+//         }
 
-    editFunctionProp(contractFunction: ContractFunction, key: string, value: any) {
-        const searchFunctionIndex = this.props.functions.findIndex((val) => val.props.uuid === contractFunction.props.uuid)
+//         return this
+//     }
 
-        if (searchFunctionIndex !== -1) {
-            this.props.functions[searchFunctionIndex].props[key] = value;
-        }
+//     editFunctionLocalVariableProp(contractFunction: ContractFunction, variable: Variable, key: string, value: any) {
+//         const searchFunctionIndex = this.props.functions.findIndex((val) => val.props.uuid === contractFunction.props.uuid)
 
-        return this
-    }
+//         if (searchFunctionIndex === -1) {
+//             console.error("Couldn't find function!")
+//             return this
+//         }
 
-    editFunctionLocalVariableProp(contractFunction: ContractFunction, variable: Variable, key: string, value: any) {
-        const searchFunctionIndex = this.props.functions.findIndex((val) => val.props.uuid === contractFunction.props.uuid)
+//         const searchVariableIndex = this.props.functions[searchFunctionIndex].props.variables.findIndex((val) => val.props.uuid === variable.props.uuid)
 
-        if (searchFunctionIndex === -1) {
-            console.error("Couldn't find function!")
-            return this
-        }
+//         if (searchVariableIndex !== -1) {
+//             this.props.functions[searchFunctionIndex].props.variables[searchVariableIndex].props[key] = value;
+//         }
 
-        const searchVariableIndex = this.props.functions[searchFunctionIndex].props.variables.findIndex((val) => val.props.uuid === variable.props.uuid)
+//         return this
+//     }
 
-        if (searchVariableIndex !== -1) {
-            this.props.functions[searchFunctionIndex].props.variables[searchVariableIndex].props[key] = value;
-        }
+//     addLocalVariableFunction(contractFunction: ContractFunction) {
+//         const localFunction = contractFunction.addVariable()
 
-        return this
-    }
+//         const searchFunctionIndex = this.props.functions.findIndex((val) => val.props.uuid === contractFunction.props.uuid)
 
-    addLocalVariableFunction(contractFunction: ContractFunction) {
-        const localFunction = contractFunction.addVariable()
+//         if (searchFunctionIndex !== -1) {
+//             this.props.functions[searchFunctionIndex] = localFunction
 
-        const searchFunctionIndex = this.props.functions.findIndex((val) => val.props.uuid === contractFunction.props.uuid)
+//             return this;
+//         }
 
-        if (searchFunctionIndex !== -1) {
-            this.props.functions[searchFunctionIndex] = localFunction
+//         console.error("Couldn't find the function to add the local variable to!")
 
-            return this;
-        }
+//         return this
+//     }
 
-        console.error("Couldn't find the function to add the local variable to!")
+//     addFunctionEntryPoint(contractFunction: ContractFunction) {
+//         const localFunction = contractFunction.addInput("arg" + Object.keys(contractFunction.props.inputs).length + 1, "number")
 
-        return this
-    }
+//         const searchFunctionIndex = this.props.functions.findIndex((val) => val.props.uuid === contractFunction.props.uuid)
 
-    addFunctionEntryPoint(contractFunction: ContractFunction) {
-        const localFunction = contractFunction.addInput("arg" + Object.keys(contractFunction.props.inputs).length + 1, "number")
+//         if (searchFunctionIndex !== -1) {
+//             this.props.functions[searchFunctionIndex] = localFunction
 
-        const searchFunctionIndex = this.props.functions.findIndex((val) => val.props.uuid === contractFunction.props.uuid)
+//             return this;
+//         }
 
-        if (searchFunctionIndex !== -1) {
-            this.props.functions[searchFunctionIndex] = localFunction
+//         console.error("Couldn't find the function to add the local variable to!")
 
-            return this;
-        }
+//         return this
+//     }
 
-        console.error("Couldn't find the function to add the local variable to!")
+//     editFunctionEntryPoint(contractFunction: ContractFunction, entryPointIndex: number, props: { name: string, type: string }) {
+//         const searchFunctionIndex = this.props.functions.findIndex((val) => val.props.uuid === contractFunction.props.uuid)
 
-        return this
-    }
+//         if (searchFunctionIndex === -1) {
+//             console.error("Couldn't find function!")
+//             return this
+//         }
 
-    editFunctionEntryPoint(contractFunction: ContractFunction, entryPointIndex: number, props: { name: string, type: string }) {
-        const searchFunctionIndex = this.props.functions.findIndex((val) => val.props.uuid === contractFunction.props.uuid)
+//         this.props.functions[searchFunctionIndex] = contractFunction.editInput(entryPointIndex, props)
 
-        if (searchFunctionIndex === -1) {
-            console.error("Couldn't find function!")
-            return this
-        }
+//         // const searchVariableIndex = this.props.functions[searchFunctionIndex].props.variables.findIndex((val) => val.props.uuid === variable.props.uuid)
 
-        this.props.functions[searchFunctionIndex] = contractFunction.editInput(entryPointIndex, props)
+//         // if (searchVariableIndex !== -1) {
+//         //     this.props.functions[searchFunctionIndex].props.variables[searchVariableIndex].props[key] = value;
+//         // }
 
-        // const searchVariableIndex = this.props.functions[searchFunctionIndex].props.variables.findIndex((val) => val.props.uuid === variable.props.uuid)
-
-        // if (searchVariableIndex !== -1) {
-        //     this.props.functions[searchFunctionIndex].props.variables[searchVariableIndex].props[key] = value;
-        // }
-
-        return this
-    }
-}
+//         return this
+//     }
+// }
 
 export const UIElementsTypes = {
     ['text']: {
         component: InputComponent
     },
     ['argsList']: {
-        component: FunctionArguments
+        // component: FunctionArguments
     }
 }
 
-
-
-export interface UIElementsMetadata {
-    [key: string]: {
-        props: { name: string, type: string }[]
-    }
-}
 
 export const uiElementsMetadata: UIElementsMetadata = {
-    ["Contract"]: {
+    ["contract"]: {
         props: [{
             name: 'name',
             type: 'text'
         }]
     },
-    ["ContractFunction"]: {
+    ["method"]: {
         props: [{
             name: 'name',
             type: 'text'
-        }, {
-            name: 'inputs',
-            type: 'argsList'
-        },
-        {
-            name: 'outputs',
-            type: 'argsList'
         }
+            // }, {
+            //     name: 'inputs',
+            //     type: 'argsList'
+            // },
+            // {
+            //     name: 'outputs',
+            //     type: 'argsList'
+            // }
         ]
     },
-    ["Variable"]: {
+    ["variable"]: {
         props: [{
             name: 'name',
             type: 'text'
@@ -287,11 +283,146 @@ export const uiElementsMetadata: UIElementsMetadata = {
 }
 
 
-export interface ContractFileSystem {
-    [key: string]: Contract
-}
+export const selectedFile = writable<string>("")
+export const selectedElement = writable<string>("")
+export const fileSystem = writable<ContractFileSystem>({})
 
-export const selectedContract = writable<string>(undefined)
-export const selectedElement = writable<Variable | ContractFunction | Contract | undefined>()
-export const selectedLocalVariable = writable<Variable | undefined>()
-export const contractFileSystem = writable<ContractFileSystem>({})
+export function useFileSystem() {
+
+    function addNewContract() {
+        fileSystem.update((fs) => {
+            const fsLength = Object.keys(fs).length
+
+            const updatedFs: ContractFileSystem = {
+                ...fs,
+                [uuidv4()]: makeContract("Contract_" + fsLength)
+            }
+
+            return updatedFs
+        })
+    }
+
+    function addContractNewVar(contractId: string) {
+        fileSystem.update((fs) => {
+            let contract = fs[contractId]
+
+            if (!contract) {
+                console.error("Can't find countract id in fs!")
+                return fs
+            }
+
+            let varsLength = Object.keys(contract.variables).length
+
+            const uuid = uuidv4()
+
+            contract = {
+                ...contract,
+                variables: {
+                    ...contract.variables,
+                    [uuid]: makeVariable("Variable_" + uuid.substring(0, 5))
+                }
+            }
+
+            return {
+                ...fs,
+                [contractId]: contract
+            }
+        })
+    }
+
+    function removeContractVar(contractId: string, varId: string) {
+        fileSystem.update((fs) => {
+            const contract = fs[contractId]
+
+            delete contract.variables[varId]
+
+            return {
+                ...fs,
+                [contractId]: contract
+            }
+        })
+    }
+
+    function updateContractMethodProp(contractId: string, methodId: string, value: any) {
+        fileSystem.update((fs) => {
+            const contract = fs[contractId]
+
+            contract.methods[methodId] = {
+                ...contract.methods[methodId],
+                ...value
+            }
+
+            return {
+                ...fs,
+                [contractId]: contract
+            }
+        })
+    }
+    function updateContractVarProp(contractId: string, varId: string, value: any) {
+        fileSystem.update((fs) => {
+            const contract = fs[contractId]
+
+            contract.variables[varId] = {
+                ...contract.variables[varId],
+                ...value
+            }
+
+            return {
+                ...fs,
+                [contractId]: contract
+            }
+        })
+    }
+
+
+    function removeContractMethod(contractId: string, methodId: string) {
+        fileSystem.update((fs) => {
+            const contract = fs[contractId]
+
+            delete contract.methods[methodId]
+
+            return {
+                ...fs,
+                [contractId]: contract
+            }
+        })
+    }
+
+    function addContractNewMethod(contractId: string) {
+        fileSystem.update((fs) => {
+            let contract = fs[contractId]
+
+            if (!contract) {
+                console.error("Can't find countract id in fs!")
+                return fs
+            }
+
+            let methodsLength = Object.keys(contract.methods).length
+
+            const uuid = uuidv4()
+
+            contract = {
+                ...contract,
+                methods: {
+                    ...contract.methods,
+                    [uuid]: makeMethod("Method_" + uuid.substring(0, 5))
+                }
+            }
+
+            return {
+                ...fs,
+                [contractId]: contract
+            }
+        })
+    }
+
+    return {
+        addNewContract,
+        updateContractMethodProp,
+        updateContractVarProp,
+        addContractNewVar,
+        addContractNewMethod,
+        removeContractVar,
+        removeContractMethod
+    }
+}
